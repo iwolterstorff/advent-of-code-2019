@@ -1,4 +1,5 @@
 import System.Environment
+import Utils
 
 -- usage: day1 [input-file] [1 or 2]
 
@@ -31,7 +32,3 @@ fuelForModuleComplete mass acc =
     fuelForModuleComplete fuel (acc + fuel)
     where fuel = fuelForModule mass
 
-stringInputToInts :: String -> [Int]
-stringInputToInts bigstring =
-    map read intstrings
-    where intstrings = lines bigstring
