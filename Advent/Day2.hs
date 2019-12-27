@@ -1,10 +1,9 @@
 module Advent.Day2 (
 day21,
+day22,
 inputToMap,
 interpretIntcode
 ) where
-
-import Debug.Trace
 
 import Data.List.Split
 import qualified Data.Map as Map
@@ -16,6 +15,26 @@ day21 input =
         result = interpretIntcode inCode
     in show $ result Map.! 0
 
+day22 :: String -> String
+day22 input =
+    let target = 19690720
+        intcode = inputToMap input
+    in show $ search intcode target
+
+search :: Map.Map Int Int -> Int -> Int
+search intcode target =
+    searchAux intcode target queue
+    where range = [0..99]
+          queue = [(noun,verb) | noun <- range, verb <- range]
+          searchAux _ _ [] = error "Noun and verb cannot be found"
+          searchAux intcode target ((noun, verb):rest) =
+            let inCode = Map.insert 1 noun .
+                        Map.insert 2 verb $ intcode
+                result = (interpretIntcode inCode) Map.! 0
+                in if result == target
+                    then 100 * noun + verb
+                    else searchAux intcode target rest
+        
 inputToMap :: String -> Map.Map Int Int
 inputToMap input =
     let inList = splitOn "," input
@@ -27,9 +46,8 @@ interpretIntcode intcode =
     interpretIntcodeAux intcode 0
 
 interpretIntcodeAux :: Map.Map Int Int -> Int -> Map.Map Int Int
---interpretIntcodeAux intcode pointer | trace ("pointer = " ++ show pointer ++ " intcode = " ++ show intcode) False = undefined
 interpretIntcodeAux intcode pointer
-    | Map.notMember pointer intcode = error "you dun goofed"
+    | pointer `Map.notMember` intcode = error "you dun goofed"
     | inst == 99    = intcode
     | inst == 1     = interpretIntcodeAux (interpretFn (+)) (pointer + 4)
     | inst == 2     = interpretIntcodeAux (interpretFn (*)) (pointer + 4)
@@ -42,6 +60,5 @@ interpretIntcodeAux intcode pointer
 
 
 applyInstruction :: Int -> Int -> Int -> Map.Map Int Int -> (Int -> Int -> Int) -> Map.Map Int Int
---applyInstruction param1 param2 res intcode fun | trace ("function applied to " ++ show param1 ++ " " ++ show param2 ++ " stored in res " ++ show res) False = undefined
 applyInstruction param1 param2 res intcode fun =
     Map.insert res (fun param1 param2) intcode
